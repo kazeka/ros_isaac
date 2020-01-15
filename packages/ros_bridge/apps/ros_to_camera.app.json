@@ -1,0 +1,82 @@
+{
+  "name": "ros_to_camera",
+  "modules": [
+    "ros_bridge",
+    "viewers"
+  ],
+  "graph": {
+    "nodes": [
+          {
+            "name": "ros_node",
+            "components": [
+              {
+                "name": "RosNode",
+                "type": "isaac::ros_bridge::RosNode"
+              }
+            ],
+            "disable_automatic_start": true
+          },
+          {
+            "name": "ros_converters",
+            "components": [
+              {
+                "name": "MessageLedger",
+                "type": "isaac::alice::MessageLedger"
+              },
+              {
+                "name": "RosToCameraImage",
+                "type": "isaac::ros_bridge::RosToCameraImage"
+              }
+            ],
+            "disable_automatic_start": true
+          },
+          {
+            "name": "viewer",
+            "components": [
+              {
+                "name": "MessageLedger",
+                "type": "isaac::alice::MessageLedger"
+              },
+              {
+                "name": "ColorCameraViewer",
+                "type": "isaac::viewers::ColorCameraViewer"
+              }
+            ]
+          }
+    ],
+    "edges": [
+        {
+          "source": "ros_converters/RosToCameraImage/image",
+          "target": "viewer/ColorCameraViewer/color_listener"
+        }
+    ]
+  },
+  "config": {
+    "ros_node": {
+        "RosNode": {
+          "tick_period": "30Hz"
+        }
+    },
+    "ros_converters": {
+        "RosToCameraImage": {
+          "ros_node": "$(fullname ros_node)",
+          "channel_name": "/cam0/image_raw"
+        }
+    },
+    "websight": {
+      "WebsightServer": {
+        "port": 3000,
+        "ui_config": {
+          "windows": {
+            "Camera": {
+              "renderer": "2d",
+              "channels": [
+                { "name": "ros_to_camera/ros_to_camera.viewer/ColorCameraViewer/Color" }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
